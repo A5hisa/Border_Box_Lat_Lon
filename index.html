@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bounding Box Calculator</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+        h2 { text-align: center; color: #333; margin-bottom: 1.5rem; }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.5rem; color: #555; font-weight: bold; }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 10px;
+        }
+        button:hover { background-color: #0056b3; }
+        .result-box {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 6px;
+            display: none;
+        }
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 4px;
+        }
+        .code-block {
+            background: #2d2d2d;
+            color: #76ff03;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+            margin-top: 10px;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>📍 Bounding Box Calculator</h2>
+    
+    <div class="form-group">
+        <label>Latitude (จุดศูนย์กลาง)</label>
+        <input type="number" id="lat" step="any" value="35.0275" placeholder="เช่น 35.0275">
+    </div>
+    
+    <div class="form-group">
+        <label>Longitude (จุดศูนย์กลาง)</label>
+        <input type="number" id="lon" step="any" value="-111.022778" placeholder="เช่น -111.022778">
+    </div>
+    
+    <div class="form-group">
+        <label>รัศมี (กิโลเมตร)</label>
+        <input type="number" id="dist" step="any" value="1" placeholder="เช่น 1.5">
+    </div>
+
+    <button onclick="calculateBox()">คำนวณพื้นที่</button>
+
+    <div id="output" class="result-box">
+        <h3>ผลลัพธ์</h3>
+        <div class="result-row"><span>Min Lat (South):</span> <strong id="minLat"></strong></div>
+        <div class="result-row"><span>Min Lon (West):</span> <strong id="minLon"></strong></div>
+        <div class="result-row"><span>Max Lat (North):</span> <strong id="maxLat"></strong></div>
+        <div class="result-row"><span>Max Lon (East):</span> <strong id="maxLon"></strong></div>
+
+        <p style="margin-bottom: 5px; margin-top: 15px; font-weight: bold;">Format [minLon, minLat, maxLon, maxLat]:</p>
+        <div class="code-block" id="jsonOutput"></div>
+    </div>
+</div>
+
+<script>
+    function calculateBox() {
+        // รับค่าจาก Input
+        const lat = parseFloat(document.getElementById('lat').value);
+        const lon = parseFloat(document.getElementById('lon').value);
+        const dist = parseFloat(document.getElementById('dist').value);
+
+        if (isNaN(lat) || isNaN(lon) || isNaN(dist)) {
+            alert("กรุณากรอกตัวเลขให้ครบถ้วน");
+            return;
+        }
+
+        // สูตรคำนวณ (ใช้ค่าประมาณ 111.32 กม./องศา)
+        const latChange = dist / 111.32;
+        // แปลง lat เป็น radians เพื่อหา cos
+        const latRad = lat * (Math.PI / 180);
+        const lonChange = dist / (111.32 * Math.cos(latRad));
+
+        const minLat = lat - latChange;
+        const maxLat = lat + latChange;
+        const minLon = lon - lonChange;
+        const maxLon = lon + lonChange;
+
+        // แสดงผล
+        document.getElementById('minLat').innerText = minLat.toFixed(6);
+        document.getElementById('minLon').innerText = minLon.toFixed(6);
+        document.getElementById('maxLat').innerText = maxLat.toFixed(6);
+        document.getElementById('maxLon').innerText = maxLon.toFixed(6);
+
+        // แสดง Format Array
+        const arrayFormat = `[${minLon.toFixed(6)}, ${minLat.toFixed(6)}, ${maxLon.toFixed(6)}, ${maxLat.toFixed(6)}]`;
+        document.getElementById('jsonOutput').innerText = arrayFormat;
+
+        // เปิดกล่องผลลัพธ์
+        document.getElementById('output').style.display = 'block';
+    }
+</script>
+
+</body>
+</html>
